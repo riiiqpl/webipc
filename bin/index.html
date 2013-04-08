@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>WebIPC Demo</title>
+	<script src="http://lib.sinaapp.com/js/jquery/1.6/jquery.min.js"></script>
+	<script src="WebIPC.js"></script>
+	<style>
+	body {
+		font: 10px;
+		font-family: courier new;
+	}
+	
+	#txt {
+		width: 400px;
+		height: 100px;
+	}
+	
+	#ball {
+		position: absolute;
+		width: 64px;
+		height: 64px;
+		left: 100px;
+		background: url(ball.png);
+	}
+	</style>
+</head>
+
+<body>
+	Observe:
+	<input type="checkbox" id="chkText" checked="checked" /><label for="chkText">TextBox</label>
+	<input type="checkbox" id="chkSelect" checked="checked" /><label for="chkSelect">SelectBox</label>
+	<input type="checkbox" id="chkBall" checked="checked" /><label for="chkBall">Ball</label>
+	
+	<hr />
+	<p>No.1 - TextBox</p>
+	<textarea id="txt"></textarea>
+	<button id="btnSend">Send</button>
+	
+	<hr />
+	<p>No.2 - SelectBox</p>
+	<select id="sel">
+		<option>January</option>
+		<option>February</option>
+		<option>March</option>
+		<option>April</option>
+		<option>May</option>
+		<option>June</option>
+		<option>July</option>
+		<option>August</option>
+		<option>September</option>
+		<option>October</option>
+		<option>November</option>
+		<option>December</option>
+	</select>
+	
+	<hr />
+	<p>No.3 - Ball</p>
+	<div id="ball"></div>
+
+	<script>
+	var MSG_TEXTBOX = 1;
+	var MSG_SELECT = 2;
+	var MSG_BALL = 3;
+	
+	var handle = [];	
+	
+	handle[MSG_TEXTBOX] = function(msg) {
+		$('#txt').val(msg);
+	}
+
+	handle[MSG_SELECT] = function(msg) {
+		$('#sel').prop('selectedIndex', msg)
+	}
+
+	handle[MSG_BALL] = function(msg) {
+		var pos = msg.split(',');
+		$('#ball').css({
+			left: pos[0] + 'px',
+			top: pos[1] + 'px'
+		});
+	}
+
+	WebIPC.onready = function() {
+
+		// channel name
+		WebIPC.setChannel('ccav');
+		
+		// recv handle
+		WebIPC.onmessage = function(subject, msg) {
+			handle[subject](msg);
+		}
+		
+		// --------------------------------------------------
+		// demo ui
+		// --------------------------------------------------
+		$('#btnSend').click(function() {
+			var msg = $('#txt').val();
+			WebIPC.send(MSG_TEXTBOX, msg);
+		});
+
+		$('#sel').change(function() {
+			var msg = $(this).prop('selectedIndex');
+			WebIPC.send(MSG_SELECT, msg)
+		});
+
+
+		var x, y;
+		var tid = -1;
+		var stop = -1;
+		
+		$(document).mousemove(function(e) {
+			x = e.pageX + 10;
+			y = e.pageY + 10;
+			
+			if (tid == -1)
+				tid = setInterval(sendPos, 100);
+			
+			clearTimeout(stop);
+			stop = setTimeout(function() {
+				clearInterval(tid);
+				tid = -1;
+			}, 100);
+		});
+		
+		function sendPos() {
+			WebIPC.send(MSG_BALL, x + ',' + y);
+		}
+		
+
+		
+		// --------------------------------------------------
+		// checkbox ...
+		// --------------------------------------------------
+		function onChkText() {
+			if ($('#chkText').prop('checked'))
+				WebIPC.watch(MSG_TEXTBOX);
+			else
+				WebIPC.unwatch(MSG_TEXTBOX);
+		}
+		
+		function onChkSel() {
+			if ($('#chkSelect').prop('checked'))
+				WebIPC.watch(MSG_SELECT);
+			else
+				WebIPC.unwatch(MSG_SELECT);
+		}
+		
+		function onChkBall() {
+			if ($('#chkBall').prop('checked'))
+				WebIPC.watch(MSG_BALL);
+			else
+				WebIPC.unwatch(MSG_BALL);
+		}
+		
+		$('#chkText').click(onChkText);
+		$('#chkSelect').click(onChkSel);
+		$('#chkBall').click(onChkBall);
+		
+		onChkText();
+		onChkSel();
+		onChkBall();
+	}
+	</script>
+</body>
+</html>
