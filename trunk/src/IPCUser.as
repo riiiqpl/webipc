@@ -52,17 +52,19 @@ package
 		
 		public function watch(subject:int) : void
 		{
-			if (arrSubjects.indexOf(subject) == -1)
+			if (arrSubjects.indexOf(subject) == -1) {
 				arrSubjects.push(subject);
-			lc.send(channel, 'onWatch', subject, pid);
+				lc.send(channel, 'onWatch', subject, pid);
+			}
 		}
 		
 		public function unwatch(subject:int) : void
 		{
 			var p:int = arrSubjects.indexOf(subject);
-			if (p != -1)
+			if (p != -1) {
 				arrSubjects.splice(p, 1);
-			lc.send(channel, 'onUnwatch', subject, pid);
+				lc.send(channel, 'onUnwatch', subject, pid);
+			}
 		}
 		
 		public function send(subject:int, msg:String) : void
