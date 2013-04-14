@@ -11,11 +11,12 @@ var WebIPC = function() {
 			(function() {
 				try	{
 					document.documentElement.doScroll('left');
-					cb();
 				}
 				catch(e) {
 					setTimeout(arguments.callee, 1);
+					return;
 				}
+				cb();
 			})();
 		}
 	}
@@ -42,7 +43,7 @@ var WebIPC = function() {
 	}
 
 	_IPC_READY = function() {
-		WebIPC.onready();
+		setTimeout(function(){WebIPC.onready()}, 1);
 	}
 	
 	_IPC_CB = function(subject, msg) {
@@ -50,7 +51,7 @@ var WebIPC = function() {
 	}
 
 	function onUnload() {
-		f.close();
+		//f.dispose();
 	}
 
 	if (window.addEventListener)
